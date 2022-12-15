@@ -2,9 +2,7 @@ import os
 import setuptools
 from pathlib import Path
 
-with open(os.path.join(os.getcwd(), 'configs/__VERSION__')) as fp:
-    __VERSION__ = str(fp.read())
-
+__VERSION__ = (Path(__file__).parent / ".github/scripts/__VERSION__").read_text()
 long_description = Path("README.md").read_text()
 
 setuptools.setup(
@@ -21,5 +19,5 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.9',
 )
