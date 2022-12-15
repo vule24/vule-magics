@@ -7,10 +7,10 @@ jobs:
   build_and_publish_stable:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Python 3.6
+      - name: Setup Python 3.9
         uses: actions/setup-python@v4
         with:
-          python-version: 3.6
+          python-version: 3.9
 
       - name: Install dependencies
         run: |
