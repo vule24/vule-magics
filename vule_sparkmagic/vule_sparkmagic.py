@@ -66,11 +66,13 @@ class VuLeSparkMagic(Magics):
     @line_magic
     def show(self, line):
         args = parse_argstring(self.sql, line)
-        _del_after_use = self._find_var_by_name(args.dataframe)
-        display(_del_after_use.limit(args.num_rows).toPandas())
-        del _del_after_use
-        gc.collect()
-        clear_output(wait=True)
+        df = self.shell.user_ns.get(args.dataframe, None)
+        try:
+            display(df.limit(args.num_rows).toPandas())
+            clear_output(wait=True)
+        except AttributeError as err:
+            display(err)
+            print("Input dataframe is not existed")
 
 
     def _create_temp_view_for_available_dataframe(self):
@@ -86,15 +88,3 @@ class VuLeSparkMagic(Magics):
                 continue
             params_values.update({param: value})
         return source.format(**params_values)
-
-    def _find_var_by_name(self, name):
-        """Remember to delete the result when the job done"""
-        if not self.shell.user_ns.get(name, None):
-            code = name
-            try:
-                exec("_del_after_use = " + code)
-                _del_after_use = self.shell.user_ns['_del_after_use']
-                return _del_after_use
-            except:
-                raise Exception(f"{name} not defined")
-    
