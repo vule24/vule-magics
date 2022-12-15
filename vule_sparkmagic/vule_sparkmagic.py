@@ -4,21 +4,15 @@ from IPython.display import display, clear_output
 from pyspark.sql import SparkSession
 from pyspark.sql.dataframe import DataFrame
 from string import Formatter
-import gc
 
 
 @magics_class
 class VuLeSparkMagic(Magics):
 
-    @magic_arguments()
-    @argument('session', metavar='SESSION', type=str, nargs=None, help="Input SparkSession")
-    @line_magic
-    def register(self, line):
-        args = parse_argstring(self.register, line)
-        self.spark_session = self.shell.user_ns.get(args.session, None)
-        assert isinstance(self.spark_session, SparkSession), "Cannot regiter spark session: {args.session}"
-        self._create_temp_view_for_available_dataframe()
-    
+    @property
+    def spark(self):
+        return SparkSession._instantiatedSession
+
 
     @magic_arguments()
     @argument('inputs', metavar='INPUTS', type=str, nargs='+', help="[FILETYPE] [PATH]. FILE_TYPE defaults to `parquet` if not specified")
@@ -32,9 +26,9 @@ class VuLeSparkMagic(Magics):
         else:
             ftype, path = args.inputs[0], args.inputs[1]
        
-        assert self.spark_session is not None, "No registered SparkSession"
+        assert self.spark is not None, "No registered SparkSession"
 
-        return self.spark_session.read.format(ftype)\
+        return self.spark.read.format(ftype)\
                     .option("inferSchema", "true")\
                     .option("header", "true")\
                     .load(path)
@@ -48,11 +42,11 @@ class VuLeSparkMagic(Magics):
         self._create_temp_view_for_available_dataframe()
         if cell is None:
             query_str = self._format_params(line)
-            return self.spark_session.sql(query_str)
+            return self.spark.sql(query_str)
         else:
             args = parse_argstring(self.sql, line)
             query_str = self._format_params(cell)
-            df = self.spark_session.sql(query_str)
+            df = self.spark.sql(query_str)
             if args.dataframe:
                 self.shell.user_ns.update({args.dataframe: df})
             else:
